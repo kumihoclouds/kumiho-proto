@@ -1,0 +1,387 @@
+// SPDX-License-Identifier: MIT
+//
+// MIT License
+// Copyright (c) 2025 kumihoclouds
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+syntax = "proto3";
+
+package kumiho;
+
+// A Kumiho Reference (Kref) uniquely identifies any object in the system.
+message Kref {
+    string uri = 1;
+}
+
+// A Link represents a directed, typed relationship between two versions.
+message Link {
+    Kref source_kref = 1;
+    Kref target_kref = 2;
+    string link_type = 3;
+    map<string, string> metadata = 4;
+    string created_at = 5;
+    string author = 6;
+    string username = 7;
+}
+
+// --- Generic Messages ---
+
+message StatusResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message KrefRequest {
+    Kref kref = 1;
+}
+
+message ResolveKrefRequest {
+  string kref = 1;
+  optional string tag = 2;
+  optional string time = 3; // Time in YYYYMMDDHHMM format
+}
+
+// --- Group Messages ---
+
+message CreateGroupRequest {
+    string parent_path = 1;
+    string group_name = 2;
+    bool exists_error = 3;  // New field
+}
+
+message GroupResponse {
+    string path = 1;
+    string created_at = 2;
+    string modified_at = 3;
+    string author = 4;
+    map<string, string> metadata = 5;
+    string username = 6;
+    string name = 7;
+    string type = 8; // "root" or "sub"
+}
+
+message GetGroupRequest {
+    string path_or_kref = 1;
+}
+
+message DeleteGroupRequest {
+    string path = 1;
+    bool force = 2; // If true, allows admin to delete a group with products.
+    string user_permission = 3; // Identifier for permission check (e.g., "Admin").
+}
+
+message GetChildGroupsRequest {
+    string parent_path = 1; // Empty string for root level groups
+}
+
+message GetChildGroupsResponse {
+    repeated GroupResponse groups = 1;
+}
+
+// --- Product Messages ---
+
+message CreateProductRequest {
+    string parent_path = 1;
+    string product_name = 2;
+    string product_type = 3;
+    bool exists_error = 4;  // New field
+}
+
+message GetProductRequest {
+    string parent_path = 1;
+    string product_name = 2;
+    string product_type = 3;
+}
+
+message ProductResponse {
+    Kref kref = 1;
+    string name = 2;
+    string product_name = 3;
+    string product_type = 4;
+    string created_at = 5;
+    string modified_at = 6;
+    string author = 7;
+    map<string, string> metadata = 8;
+    bool deprecated = 9;
+    string username = 10;
+}
+
+message DeleteProductRequest {
+    Kref kref = 1;
+    bool force = 2;
+    string user_permission = 3;
+}
+
+message GetProductsRequest {
+    string parent_path = 1;
+    string product_name_filter = 2;
+    string product_type_filter = 3;
+}
+
+message GetProductsResponse {
+    repeated ProductResponse products = 1;
+}
+
+message ProductSearchRequest {
+    string context_filter = 1;
+    string product_name_filter = 2;
+    string product_type_filter = 3;
+}
+
+// --- Version Messages ---
+
+message CreateVersionRequest {
+    Kref product_kref = 1;
+    map<string, string> metadata = 2;
+    int32 number = 3; // 0 for next available, >0 for specific version
+    bool exists_error = 4;  // New field
+}
+
+message VersionResponse {
+    Kref kref = 1;
+    Kref product_kref = 2;
+    int32 number = 3;
+    repeated string tags = 4;
+    map<string, string> metadata = 5;
+    string created_at = 6;
+    string modified_at = 7;
+    string author = 8;
+    bool deprecated = 9;
+    bool published = 10;
+    bool latest = 11;
+    string username = 12;
+    optional string default_resource = 13;
+}
+
+message DeleteVersionRequest {
+    Kref kref = 1;
+    bool force = 2;
+    string user_permission = 3;
+}
+
+message GetVersionsRequest {
+    Kref product_kref = 1;
+}
+
+message GetVersionsResponse {
+    repeated VersionResponse versions = 1;
+}
+
+// --- Resource Messages ---
+
+message CreateResourceRequest {
+    Kref version_kref = 1;
+    string name = 2;
+    string location = 3;
+    bool exists_error = 4;  // New field
+}
+
+message ResourceResponse {
+    Kref kref = 1;
+    string location = 2;
+    Kref version_kref = 3;
+    Kref product_kref = 4;
+    string created_at = 5;
+    string modified_at = 6;
+    string author = 7;
+    map<string, string> metadata = 8;
+    bool deprecated = 9;
+    string username = 10;
+}
+
+message GetResourceRequest {
+    Kref version_kref = 1;
+    string name = 2;
+}
+
+message GetResourcesRequest {
+    Kref version_kref = 1;
+}
+
+message GetResourcesResponse {
+    repeated ResourceResponse resources = 1;
+}
+
+message DeleteResourceRequest {
+    Kref kref = 1;
+    bool force = 2;
+    string user_permission = 3;
+}
+
+message GetResourcesByLocationRequest {
+    string location = 1;
+}
+
+message GetResourcesByLocationResponse {
+    repeated ResourceResponse resources = 1;
+}
+
+// --- Tagging Messages ---
+
+message TagVersionRequest {
+    Kref kref = 1;
+    string tag = 2;
+}
+
+message UnTagVersionRequest {
+    Kref kref = 1;
+    string tag = 2;
+}
+
+message HasTagRequest {
+    Kref kref = 1;
+    string tag = 2;
+}
+
+message HasTagResponse {
+    bool has_tag = 1;
+}
+
+message WasTaggedRequest {
+    Kref kref = 1;
+    string tag = 2;
+}
+
+message WasTaggedResponse {
+    bool was_tagged = 1;
+}
+
+// --- Default Resource Messages ---
+
+message SetDefaultResourceRequest {
+    Kref version_kref = 1;
+    string resource_name = 2;
+}
+
+
+// --- Link Messages ---
+
+message CreateLinkRequest {
+    Kref source_version_kref = 1;
+    Kref target_version_kref = 2;
+    string link_type = 3;
+    map<string, string> metadata = 4;
+    bool exists_error = 5;
+}
+
+// --- Metadata Update Messages ---
+message UpdateMetadataRequest {
+    Kref kref = 1;
+    map<string, string> metadata = 2;
+}
+
+// --- Peek Next Version Messages ---
+message PeekNextVersionRequest {
+    Kref product_kref = 1;
+}
+
+message PeekNextVersionResponse {
+    int32 number = 1;
+}
+
+message GetLinksRequest {
+    Kref kref = 1; // The version to get links for.
+    string link_type_filter = 2; // Optional: if empty, returns all links.
+}
+
+message GetLinksResponse {
+    repeated Link links = 1;
+    repeated Kref version_krefs = 2;
+}
+
+message DeleteLinkRequest {
+    Kref source_kref = 1;
+    Kref target_kref = 2;
+    string link_type = 3;
+}
+
+// --- Event Streaming Messages ---
+
+message EventStreamRequest {
+    // A routing key filter, e.g., "product.model.created" or "version.tagged.*"
+    // An empty string subscribes to all events.
+    string routing_key_filter = 1;
+    // A kref filter for filtering by object URI patterns, e.g., "kref://projectA/**/*.model"
+    // Supports wildcards. An empty string means no kref filtering.
+    string kref_filter = 2;
+}
+
+message Event {
+    // A routing key describing the event, e.g., "product.model.created"
+    string routing_key = 1;
+    // The Kref of the object that was affected.
+    Kref kref = 2;
+    // Timestamp of the event.
+    string timestamp = 3;
+    // The user who triggered the event.
+    string author = 4;
+    // Additional details about the event, e.g., the tag that was added.
+    map<string, string> details = 5;
+    string username = 6;
+}
+
+
+// The Kumiho service definition.
+service KumihoService {
+    // Group methods
+    rpc CreateGroup(CreateGroupRequest) returns (GroupResponse);
+    rpc GetGroup(GetGroupRequest) returns (GroupResponse);
+    rpc GetChildGroups(GetChildGroupsRequest) returns (GetChildGroupsResponse);
+    rpc DeleteGroup(DeleteGroupRequest) returns (StatusResponse);
+    rpc UpdateGroupMetadata(UpdateMetadataRequest) returns (GroupResponse);
+
+    // Product methods
+    rpc CreateProduct(CreateProductRequest) returns (ProductResponse);
+    rpc GetProduct(GetProductRequest) returns (ProductResponse);
+    rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
+    rpc ProductSearch(ProductSearchRequest) returns (GetProductsResponse);
+    rpc DeleteProduct(DeleteProductRequest) returns (StatusResponse);
+    rpc UpdateProductMetadata(UpdateMetadataRequest) returns (ProductResponse);
+
+    // Version methods
+    rpc ResolveKref(ResolveKrefRequest) returns (VersionResponse);
+    rpc CreateVersion(CreateVersionRequest) returns (VersionResponse);
+    rpc GetVersion(KrefRequest) returns (VersionResponse);
+    rpc GetVersions(GetVersionsRequest) returns (GetVersionsResponse);
+    rpc DeleteVersion(DeleteVersionRequest) returns (StatusResponse);
+    rpc PeekNextVersion(PeekNextVersionRequest) returns (PeekNextVersionResponse);
+    rpc UpdateVersionMetadata(UpdateMetadataRequest) returns (VersionResponse);
+    rpc TagVersion(TagVersionRequest) returns (StatusResponse);
+    rpc UnTagVersion(UnTagVersionRequest) returns (StatusResponse);
+    rpc HasTag(HasTagRequest) returns (HasTagResponse);
+    rpc WasTagged(WasTaggedRequest) returns (WasTaggedResponse);
+    rpc SetDefaultResource(SetDefaultResourceRequest) returns (StatusResponse);
+
+    // Resource methods
+    rpc CreateResource(CreateResourceRequest) returns (ResourceResponse);
+    rpc GetResource(GetResourceRequest) returns (ResourceResponse);
+    rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse);
+    rpc GetResourcesByLocation(GetResourcesByLocationRequest) returns (GetResourcesByLocationResponse);
+    rpc DeleteResource(DeleteResourceRequest) returns (StatusResponse);
+    rpc UpdateResourceMetadata(UpdateMetadataRequest) returns (ResourceResponse);
+
+    // Link methods
+    rpc CreateLink(CreateLinkRequest) returns (StatusResponse);
+    rpc GetLinks(GetLinksRequest) returns (GetLinksResponse);
+    rpc DeleteLink(DeleteLinkRequest) returns (StatusResponse);
+
+    // Event Streaming
+    rpc EventStream(EventStreamRequest) returns (stream Event);
+}
