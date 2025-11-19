@@ -84,7 +84,6 @@ message GetGroupRequest {
 message DeleteGroupRequest {
     string path = 1;
     bool force = 2; // If true, allows admin to delete a group with products.
-    string user_permission = 3; // Identifier for permission check (e.g., "Admin").
 }
 
 message GetChildGroupsRequest {
@@ -126,7 +125,6 @@ message ProductResponse {
 message DeleteProductRequest {
     Kref kref = 1;
     bool force = 2;
-    string user_permission = 3;
 }
 
 message GetProductsRequest {
@@ -173,7 +171,6 @@ message VersionResponse {
 message DeleteVersionRequest {
     Kref kref = 1;
     bool force = 2;
-    string user_permission = 3;
 }
 
 message GetVersionsRequest {
@@ -222,7 +219,6 @@ message GetResourcesResponse {
 message DeleteResourceRequest {
     Kref kref = 1;
     bool force = 2;
-    string user_permission = 3;
 }
 
 message GetResourcesByLocationRequest {
