@@ -328,14 +328,51 @@ message Event {
     string timestamp = 3;
     // The user who triggered the event.
     string author = 4;
+    // Tenant scope for isolation in shared deployments.
+    string tenant_id = 5;
     // Additional details about the event, e.g., the tag that was added.
-    map<string, string> details = 5;
-    string username = 6;
+    map<string, string> details = 6;
+    string username = 7;
+}
+
+// --- Project Messages (gRPC parity with HTTP) ---
+
+message CreateProjectRequest {
+    string name = 1;
+    string description = 2;
+}
+
+message ProjectResponse {
+    string project_id = 1;
+    string name = 2;
+    string description = 3;
+    string created_at = 4;
+    string updated_at = 5;
+    bool deprecated = 6;
+}
+
+message GetProjectsRequest {
+    // Reserved for future filters; currently unused.
+}
+
+message GetProjectsResponse {
+    repeated ProjectResponse projects = 1;
+}
+
+message DeleteProjectRequest {
+    string project_id = 1;
+    // force=true lets owner/admin hard-delete; otherwise deprecates.
+    bool force = 2;
 }
 
 
 // The Kumiho service definition.
 service KumihoService {
+    // Project methods
+    rpc CreateProject(CreateProjectRequest) returns (ProjectResponse);
+    rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse);
+    rpc DeleteProject(DeleteProjectRequest) returns (StatusResponse);
+
     // Group methods
     rpc CreateGroup(CreateGroupRequest) returns (GroupResponse);
     rpc GetGroup(GetGroupRequest) returns (GroupResponse);
