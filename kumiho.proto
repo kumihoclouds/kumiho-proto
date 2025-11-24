@@ -417,6 +417,19 @@ service KumihoService {
     rpc GetLinks(GetLinksRequest) returns (GetLinksResponse);
     rpc DeleteLink(DeleteLinkRequest) returns (StatusResponse);
 
+    // Tenant methods
+    rpc GetTenantUsage(GetTenantUsageRequest) returns (TenantUsageResponse);
+
     // Event Streaming
     rpc EventStream(EventStreamRequest) returns (stream Event);
+}
+
+message GetTenantUsageRequest {
+    // Empty request, context is derived from auth token
+}
+
+message TenantUsageResponse {
+    int64 node_count = 1;
+    int64 node_limit = 2;
+    string tenant_id = 3;
 }
