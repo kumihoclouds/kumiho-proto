@@ -352,6 +352,7 @@ message ProjectResponse {
     string created_at = 4;
     string updated_at = 5;
     bool deprecated = 6;
+    bool allow_public = 7;
 }
 
 message GetProjectsRequest {
@@ -369,11 +370,18 @@ message DeleteProjectRequest {
 }
 
 
+message UpdateProjectRequest {
+    string project_id = 1;
+    optional bool allow_public = 2;
+    optional string description = 3;
+}
+
 // The Kumiho service definition.
 service KumihoService {
     // Project methods
     rpc CreateProject(CreateProjectRequest) returns (ProjectResponse);
     rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse);
+    rpc UpdateProject(UpdateProjectRequest) returns (ProjectResponse);
     rpc DeleteProject(DeleteProjectRequest) returns (StatusResponse);
 
     // Group methods
