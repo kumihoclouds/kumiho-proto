@@ -58,6 +58,18 @@ message ResolveKrefRequest {
   optional string time = 3; // Time in YYYYMMDDHHMM format
 }
 
+message ResolveLocationRequest {
+    string kref = 1;
+    optional string tag = 2;
+    optional string time = 3;
+}
+
+message ResolveLocationResponse {
+    string location = 1;
+    Kref resolved_kref = 2;
+    string resource_name = 3;
+}
+
 // --- Group Messages ---
 
 message CreateGroupRequest {
@@ -295,9 +307,16 @@ message PeekNextVersionResponse {
     int32 number = 1;
 }
 
+enum LinkDirection {
+    OUTGOING = 0;
+    INCOMING = 1;
+    BOTH = 2;
+}
+
 message GetLinksRequest {
     Kref kref = 1; // The version to get links for.
     string link_type_filter = 2; // Optional: if empty, returns all links.
+    LinkDirection direction = 3; // Optional: defaults to OUTGOING
 }
 
 message GetLinksResponse {
@@ -401,6 +420,7 @@ service KumihoService {
 
     // Version methods
     rpc ResolveKref(ResolveKrefRequest) returns (VersionResponse);
+    rpc ResolveLocation(ResolveLocationRequest) returns (ResolveLocationResponse);
     rpc CreateVersion(CreateVersionRequest) returns (VersionResponse);
     rpc GetVersion(KrefRequest) returns (VersionResponse);
     rpc GetVersions(GetVersionsRequest) returns (GetVersionsResponse);
@@ -431,6 +451,14 @@ service KumihoService {
 
     // Event Streaming
     rpc EventStream(EventStreamRequest) returns (stream Event);
+
+    // Deprecation methods
+    rpc SetDeprecated(SetDeprecatedRequest) returns (StatusResponse);
+}
+
+message SetDeprecatedRequest {
+    Kref kref = 1;
+    bool deprecated = 2;
 }
 
 message GetTenantUsageRequest {
