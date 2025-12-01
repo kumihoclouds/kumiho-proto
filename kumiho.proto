@@ -399,6 +399,77 @@ message ImpactAnalysisResponse {
     bool truncated = 3;
 }
 
+// --- Collection Messages ---
+// Collections are special products that aggregate other products.
+// The "collection" product_type is reserved and cannot be created manually.
+
+message CreateCollectionRequest {
+    string parent_path = 1;          // Group path where collection will be created
+    string collection_name = 2;       // Name of the collection
+    map<string, string> metadata = 3; // Initial metadata
+}
+
+message CollectionMember {
+    Kref product_kref = 1;            // The product that is a member
+    string added_at = 2;              // When the product was added to collection
+    string added_by = 3;              // Who added the product (author uuid)
+    string added_by_username = 4;     // Username who added the product
+    int32 added_in_version = 5;       // Which collection version this was added
+}
+
+message AddCollectionMemberRequest {
+    Kref collection_kref = 1;         // The collection product kref
+    Kref member_product_kref = 2;     // The product to add as member
+    map<string, string> metadata = 3; // Optional metadata for version tracking
+}
+
+message AddCollectionMemberResponse {
+    bool success = 1;
+    string message = 2;
+    VersionResponse new_version = 3;  // The new version created for this change
+}
+
+message RemoveCollectionMemberRequest {
+    Kref collection_kref = 1;         // The collection product kref
+    Kref member_product_kref = 2;     // The product to remove
+    map<string, string> metadata = 3; // Optional metadata for version tracking
+}
+
+message RemoveCollectionMemberResponse {
+    bool success = 1;
+    string message = 2;
+    VersionResponse new_version = 3;  // The new version created for this change
+}
+
+message GetCollectionMembersRequest {
+    Kref collection_kref = 1;         // The collection product kref
+    optional int32 version_number = 2; // Optional: specific version (default: latest)
+}
+
+message GetCollectionMembersResponse {
+    repeated CollectionMember members = 1;
+    int32 version_number = 2;         // Which version's membership this represents
+    int32 total_count = 3;
+}
+
+message CollectionVersionHistory {
+    int32 version_number = 1;
+    string action = 2;                // "ADDED" or "REMOVED"
+    Kref member_product_kref = 3;     // The product that was added/removed
+    string author = 4;
+    string username = 5;
+    string created_at = 6;
+    map<string, string> metadata = 7; // Immutable audit metadata
+}
+
+message GetCollectionHistoryRequest {
+    Kref collection_kref = 1;
+}
+
+message GetCollectionHistoryResponse {
+    repeated CollectionVersionHistory history = 1;
+}
+
 // --- Event Streaming Messages ---
 
 message EventStreamRequest {
@@ -519,6 +590,13 @@ service KumihoService {
     rpc TraverseLinks(TraverseLinksRequest) returns (TraverseLinksResponse);
     rpc FindShortestPath(ShortestPathRequest) returns (ShortestPathResponse);
     rpc AnalyzeImpact(ImpactAnalysisRequest) returns (ImpactAnalysisResponse);
+
+    // Collection methods
+    rpc CreateCollection(CreateCollectionRequest) returns (ProductResponse);
+    rpc AddCollectionMember(AddCollectionMemberRequest) returns (AddCollectionMemberResponse);
+    rpc RemoveCollectionMember(RemoveCollectionMemberRequest) returns (RemoveCollectionMemberResponse);
+    rpc GetCollectionMembers(GetCollectionMembersRequest) returns (GetCollectionMembersResponse);
+    rpc GetCollectionHistory(GetCollectionHistoryRequest) returns (GetCollectionHistoryResponse);
 
     // Tenant methods
     rpc GetTenantUsage(GetTenantUsageRequest) returns (TenantUsageResponse);
