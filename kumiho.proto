@@ -330,6 +330,75 @@ message DeleteLinkRequest {
     string link_type = 3;
 }
 
+// --- Graph Traversal Messages ---
+
+// Represents a single step in a traversal path
+message PathStep {
+    Kref version_kref = 1;
+    string link_type = 2;      // The relationship type used to reach this node
+    int32 depth = 3;           // Distance from the origin (0 = origin)
+}
+
+// Represents a complete path between two versions
+message VersionPath {
+    repeated PathStep steps = 1;
+    int32 total_depth = 2;
+}
+
+// Request for transitive dependency/dependents traversal
+message TraverseLinksRequest {
+    Kref origin_kref = 1;                    // Starting version
+    LinkDirection direction = 2;              // OUTGOING = dependencies, INCOMING = dependents
+    repeated string link_type_filter = 3;     // Filter by link types (empty = all)
+    int32 max_depth = 4;                      // Maximum traversal depth (0 = default of 10)
+    int32 limit = 5;                          // Max results to return (default 100)
+    bool include_path = 6;                    // Whether to include full path info
+}
+
+message TraverseLinksResponse {
+    repeated VersionPath paths = 1;           // If include_path=true
+    repeated Kref version_krefs = 2;          // Flat list of discovered versions
+    repeated Link links = 3;                  // All traversed links
+    int32 total_count = 4;                    // Total nodes found
+    bool truncated = 5;                       // True if results were limited
+}
+
+// Request for shortest path between two versions
+message ShortestPathRequest {
+    Kref source_kref = 1;
+    Kref target_kref = 2;
+    repeated string link_type_filter = 3;     // Filter by link types (empty = all)
+    int32 max_depth = 4;                      // Maximum path length to search (default: 10)
+    bool all_shortest = 5;                    // Return all shortest paths, not just one
+}
+
+message ShortestPathResponse {
+    repeated VersionPath paths = 1;           // One or more shortest paths
+    bool path_exists = 2;                     // True if any path was found
+    int32 path_length = 3;                    // Length of shortest path(s)
+}
+
+// Request for impact analysis (what depends on this version, transitively)
+message ImpactAnalysisRequest {
+    Kref version_kref = 1;
+    repeated string link_type_filter = 2;     // Usually ["DEPENDS_ON"]
+    int32 max_depth = 3;                      // Default: 10
+    int32 limit = 4;                          // Max results
+}
+
+message ImpactedVersion {
+    Kref version_kref = 1;
+    Kref product_kref = 2;
+    int32 impact_depth = 3;                   // How many hops away
+    repeated string impact_path_types = 4;    // Link types in the impact chain
+}
+
+message ImpactAnalysisResponse {
+    repeated ImpactedVersion impacted_versions = 1;
+    int32 total_impacted = 2;
+    bool truncated = 3;
+}
+
 // --- Event Streaming Messages ---
 
 message EventStreamRequest {
@@ -445,6 +514,11 @@ service KumihoService {
     rpc CreateLink(CreateLinkRequest) returns (StatusResponse);
     rpc GetLinks(GetLinksRequest) returns (GetLinksResponse);
     rpc DeleteLink(DeleteLinkRequest) returns (StatusResponse);
+
+    // Graph Traversal methods
+    rpc TraverseLinks(TraverseLinksRequest) returns (TraverseLinksResponse);
+    rpc FindShortestPath(ShortestPathRequest) returns (ShortestPathResponse);
+    rpc AnalyzeImpact(ImpactAnalysisRequest) returns (ImpactAnalysisResponse);
 
     // Tenant methods
     rpc GetTenantUsage(GetTenantUsageRequest) returns (TenantUsageResponse);
