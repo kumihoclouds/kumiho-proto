@@ -30,11 +30,11 @@ message Kref {
     string uri = 1;
 }
 
-// A Link represents a directed, typed relationship between two versions.
-message Link {
+// An Edge represents a directed, typed relationship between two revisions.
+message Edge {
     Kref source_kref = 1;
     Kref target_kref = 2;
-    string link_type = 3;
+    string edge_type = 3;
     map<string, string> metadata = 4;
     string created_at = 5;
     string author = 6;
@@ -85,18 +85,18 @@ message ResolveLocationRequest {
 message ResolveLocationResponse {
     string location = 1;
     Kref resolved_kref = 2;
-    string resource_name = 3;
+    string artifact_name = 3;
 }
 
-// --- Group Messages ---
+// --- Space Messages ---
 
-message CreateGroupRequest {
+message CreateSpaceRequest {
     string parent_path = 1;
-    string group_name = 2;
-    bool exists_error = 3;  // New field
+    string space_name = 2;
+    bool exists_error = 3;
 }
 
-message GroupResponse {
+message SpaceResponse {
     string path = 1;
     string created_at = 2;
     string modified_at = 3;
@@ -107,48 +107,48 @@ message GroupResponse {
     string type = 8; // "root" or "sub"
 }
 
-message GetGroupRequest {
+message GetSpaceRequest {
     string path_or_kref = 1;
 }
 
-message DeleteGroupRequest {
+message DeleteSpaceRequest {
     string path = 1;
-    bool force = 2; // If true, allows admin to delete a group with products.
+    bool force = 2; // If true, allows admin to delete a space with items.
 }
 
-message GetChildGroupsRequest {
-    string parent_path = 1; // Empty string for root level groups
+message GetChildSpacesRequest {
+    string parent_path = 1; // Empty string for root level spaces
     bool recursive = 2;
     // Optional pagination parameters
     optional PaginationRequest pagination = 3;
 }
 
-message GetChildGroupsResponse {
-    repeated GroupResponse groups = 1;
+message GetChildSpacesResponse {
+    repeated SpaceResponse spaces = 1;
     // Pagination info for the response
     optional PaginationResponse pagination = 2;
 }
 
-// --- Product Messages ---
+// --- Item Messages ---
 
-message CreateProductRequest {
+message CreateItemRequest {
     string parent_path = 1;
-    string product_name = 2;
-    string product_type = 3;
-    bool exists_error = 4;  // New field
+    string item_name = 2;
+    string kind = 3;
+    bool exists_error = 4;
 }
 
-message GetProductRequest {
+message GetItemRequest {
     string parent_path = 1;
-    string product_name = 2;
-    string product_type = 3;
+    string item_name = 2;
+    string kind = 3;
 }
 
-message ProductResponse {
+message ItemResponse {
     Kref kref = 1;
     string name = 2;
-    string product_name = 3;
-    string product_type = 4;
+    string item_name = 3;
+    string kind = 4;
     string created_at = 5;
     string modified_at = 6;
     string author = 7;
@@ -157,43 +157,43 @@ message ProductResponse {
     string username = 10;
 }
 
-message DeleteProductRequest {
+message DeleteItemRequest {
     Kref kref = 1;
     bool force = 2;
 }
 
-message GetProductsRequest {
+message GetItemsRequest {
     string parent_path = 1;
-    string product_name_filter = 2;
-    string product_type_filter = 3;
+    string item_name_filter = 2;
+    string kind_filter = 3;
     // Optional pagination parameters
     optional PaginationRequest pagination = 4;
 }
 
-message GetProductsResponse {
-    repeated ProductResponse products = 1;
+message GetItemsResponse {
+    repeated ItemResponse items = 1;
     // Pagination info for the response
     optional PaginationResponse pagination = 2;
 }
 
-message ProductSearchRequest {
+message ItemSearchRequest {
     string context_filter = 1;
-    string product_name_filter = 2;
-    string product_type_filter = 3;
+    string item_name_filter = 2;
+    string kind_filter = 3;
 }
 
-// --- Version Messages ---
+// --- Revision Messages ---
 
-message CreateVersionRequest {
-    Kref product_kref = 1;
+message CreateRevisionRequest {
+    Kref item_kref = 1;
     map<string, string> metadata = 2;
-    int32 number = 3; // 0 for next available, >0 for specific version
-    bool exists_error = 4;  // New field
+    int32 number = 3; // 0 for next available, >0 for specific revision
+    bool exists_error = 4;
 }
 
-message VersionResponse {
+message RevisionResponse {
     Kref kref = 1;
-    Kref product_kref = 2;
+    Kref item_kref = 2;
     int32 number = 3;
     repeated string tags = 4;
     map<string, string> metadata = 5;
@@ -204,41 +204,41 @@ message VersionResponse {
     bool published = 10;
     bool latest = 11;
     string username = 12;
-    optional string default_resource = 13;
+    optional string default_artifact = 13;
     string name = 14;
 }
 
-message DeleteVersionRequest {
+message DeleteRevisionRequest {
     Kref kref = 1;
     bool force = 2;
 }
 
-message GetVersionsRequest {
-    Kref product_kref = 1;
+message GetRevisionsRequest {
+    Kref item_kref = 1;
     // Optional pagination parameters
     optional PaginationRequest pagination = 2;
 }
 
-message GetVersionsResponse {
-    repeated VersionResponse versions = 1;
+message GetRevisionsResponse {
+    repeated RevisionResponse revisions = 1;
     // Pagination info for the response
     optional PaginationResponse pagination = 2;
 }
 
-// --- Resource Messages ---
+// --- Artifact Messages ---
 
-message CreateResourceRequest {
-    Kref version_kref = 1;
+message CreateArtifactRequest {
+    Kref revision_kref = 1;
     string name = 2;
     string location = 3;
-    bool exists_error = 4;  // New field
+    bool exists_error = 4;
 }
 
-message ResourceResponse {
+message ArtifactResponse {
     Kref kref = 1;
     string location = 2;
-    Kref version_kref = 3;
-    Kref product_kref = 4;
+    Kref revision_kref = 3;
+    Kref item_kref = 4;
     string created_at = 5;
     string modified_at = 6;
     string author = 7;
@@ -248,40 +248,40 @@ message ResourceResponse {
     string name = 11;
 }
 
-message GetResourceRequest {
-    Kref version_kref = 1;
+message GetArtifactRequest {
+    Kref revision_kref = 1;
     string name = 2;
 }
 
-message GetResourcesRequest {
-    Kref version_kref = 1;
+message GetArtifactsRequest {
+    Kref revision_kref = 1;
 }
 
-message GetResourcesResponse {
-    repeated ResourceResponse resources = 1;
+message GetArtifactsResponse {
+    repeated ArtifactResponse artifacts = 1;
 }
 
-message DeleteResourceRequest {
+message DeleteArtifactRequest {
     Kref kref = 1;
     bool force = 2;
 }
 
-message GetResourcesByLocationRequest {
+message GetArtifactsByLocationRequest {
     string location = 1;
 }
 
-message GetResourcesByLocationResponse {
-    repeated ResourceResponse resources = 1;
+message GetArtifactsByLocationResponse {
+    repeated ArtifactResponse artifacts = 1;
 }
 
 // --- Tagging Messages ---
 
-message TagVersionRequest {
+message TagRevisionRequest {
     Kref kref = 1;
     string tag = 2;
 }
 
-message UnTagVersionRequest {
+message UnTagRevisionRequest {
     Kref kref = 1;
     string tag = 2;
 }
@@ -304,20 +304,20 @@ message WasTaggedResponse {
     bool was_tagged = 1;
 }
 
-// --- Default Resource Messages ---
+// --- Default Artifact Messages ---
 
-message SetDefaultResourceRequest {
-    Kref version_kref = 1;
-    string resource_name = 2;
+message SetDefaultArtifactRequest {
+    Kref revision_kref = 1;
+    string artifact_name = 2;
 }
 
 
-// --- Link Messages ---
+// --- Edge Messages ---
 
-message CreateLinkRequest {
-    Kref source_version_kref = 1;
-    Kref target_version_kref = 2;
-    string link_type = 3;
+message CreateEdgeRequest {
+    Kref source_revision_kref = 1;
+    Kref target_revision_kref = 2;
+    string edge_type = 3;
     map<string, string> metadata = 4;
     bool exists_error = 5;
 }
@@ -353,186 +353,186 @@ message DeleteAttributeRequest {
     string key = 2;
 }
 
-// --- Peek Next Version Messages ---
-message PeekNextVersionRequest {
-    Kref product_kref = 1;
+// --- Peek Next Revision Messages ---
+message PeekNextRevisionRequest {
+    Kref item_kref = 1;
 }
 
-message PeekNextVersionResponse {
+message PeekNextRevisionResponse {
     int32 number = 1;
 }
 
-enum LinkDirection {
+enum EdgeDirection {
     OUTGOING = 0;
     INCOMING = 1;
     BOTH = 2;
 }
 
-message GetLinksRequest {
-    Kref kref = 1; // The version to get links for.
-    string link_type_filter = 2; // Optional: if empty, returns all links.
-    LinkDirection direction = 3; // Optional: defaults to OUTGOING
+message GetEdgesRequest {
+    Kref kref = 1; // The revision to get edges for.
+    string edge_type_filter = 2; // Optional: if empty, returns all edges.
+    EdgeDirection direction = 3; // Optional: defaults to OUTGOING
     // Optional pagination parameters
     optional PaginationRequest pagination = 4;
 }
 
-message GetLinksResponse {
-    repeated Link links = 1;
-    repeated Kref version_krefs = 2;
+message GetEdgesResponse {
+    repeated Edge edges = 1;
+    repeated Kref revision_krefs = 2;
     // Pagination info for the response
     optional PaginationResponse pagination = 3;
 }
 
-message DeleteLinkRequest {
+message DeleteEdgeRequest {
     Kref source_kref = 1;
     Kref target_kref = 2;
-    string link_type = 3;
+    string edge_type = 3;
 }
 
 // --- Graph Traversal Messages ---
 
 // Represents a single step in a traversal path
 message PathStep {
-    Kref version_kref = 1;
-    string link_type = 2;      // The relationship type used to reach this node
+    Kref revision_kref = 1;
+    string edge_type = 2;      // The relationship type used to reach this node
     int32 depth = 3;           // Distance from the origin (0 = origin)
 }
 
-// Represents a complete path between two versions
-message VersionPath {
+// Represents a complete path between two revisions
+message RevisionPath {
     repeated PathStep steps = 1;
     int32 total_depth = 2;
 }
 
 // Request for transitive dependency/dependents traversal
-message TraverseLinksRequest {
-    Kref origin_kref = 1;                    // Starting version
-    LinkDirection direction = 2;              // OUTGOING = dependencies, INCOMING = dependents
-    repeated string link_type_filter = 3;     // Filter by link types (empty = all)
+message TraverseEdgesRequest {
+    Kref origin_kref = 1;                    // Starting revision
+    EdgeDirection direction = 2;              // OUTGOING = dependencies, INCOMING = dependents
+    repeated string edge_type_filter = 3;     // Filter by edge types (empty = all)
     int32 max_depth = 4;                      // Maximum traversal depth (0 = default of 10)
     int32 limit = 5;                          // Max results to return (default 100)
     bool include_path = 6;                    // Whether to include full path info
 }
 
-message TraverseLinksResponse {
-    repeated VersionPath paths = 1;           // If include_path=true
-    repeated Kref version_krefs = 2;          // Flat list of discovered versions
-    repeated Link links = 3;                  // All traversed links
+message TraverseEdgesResponse {
+    repeated RevisionPath paths = 1;           // If include_path=true
+    repeated Kref revision_krefs = 2;          // Flat list of discovered revisions
+    repeated Edge edges = 3;                   // All traversed edges
     int32 total_count = 4;                    // Total nodes found
     bool truncated = 5;                       // True if results were limited
 }
 
-// Request for shortest path between two versions
+// Request for shortest path between two revisions
 message ShortestPathRequest {
     Kref source_kref = 1;
     Kref target_kref = 2;
-    repeated string link_type_filter = 3;     // Filter by link types (empty = all)
+    repeated string edge_type_filter = 3;     // Filter by edge types (empty = all)
     int32 max_depth = 4;                      // Maximum path length to search (default: 10)
     bool all_shortest = 5;                    // Return all shortest paths, not just one
 }
 
 message ShortestPathResponse {
-    repeated VersionPath paths = 1;           // One or more shortest paths
+    repeated RevisionPath paths = 1;           // One or more shortest paths
     bool path_exists = 2;                     // True if any path was found
     int32 path_length = 3;                    // Length of shortest path(s)
 }
 
-// Request for impact analysis (what depends on this version, transitively)
+// Request for impact analysis (what depends on this revision, transitively)
 message ImpactAnalysisRequest {
-    Kref version_kref = 1;
-    repeated string link_type_filter = 2;     // Usually ["DEPENDS_ON"]
+    Kref revision_kref = 1;
+    repeated string edge_type_filter = 2;     // Usually ["DEPENDS_ON"]
     int32 max_depth = 3;                      // Default: 10
     int32 limit = 4;                          // Max results
 }
 
-message ImpactedVersion {
-    Kref version_kref = 1;
-    Kref product_kref = 2;
+message ImpactedRevision {
+    Kref revision_kref = 1;
+    Kref item_kref = 2;
     int32 impact_depth = 3;                   // How many hops away
-    repeated string impact_path_types = 4;    // Link types in the impact chain
+    repeated string impact_path_types = 4;    // Edge types in the impact chain
 }
 
 message ImpactAnalysisResponse {
-    repeated ImpactedVersion impacted_versions = 1;
+    repeated ImpactedRevision impacted_revisions = 1;
     int32 total_impacted = 2;
     bool truncated = 3;
 }
 
-// --- Collection Messages ---
-// Collections are special products that aggregate other products.
-// The "collection" product_type is reserved and cannot be created manually.
+// --- Bundle Messages ---
+// Bundles are special items that aggregate other items.
+// The "bundle" kind is reserved and cannot be created manually.
 
-message CreateCollectionRequest {
-    string parent_path = 1;          // Group path where collection will be created
-    string collection_name = 2;       // Name of the collection
+message CreateBundleRequest {
+    string parent_path = 1;          // Space path where bundle will be created
+    string bundle_name = 2;           // Name of the bundle
     map<string, string> metadata = 3; // Initial metadata
 }
 
-message CollectionMember {
-    Kref product_kref = 1;            // The product that is a member
-    string added_at = 2;              // When the product was added to collection
-    string added_by = 3;              // Who added the product (author uuid)
-    string added_by_username = 4;     // Username who added the product
-    int32 added_in_version = 5;       // Which collection version this was added
+message BundleMember {
+    Kref item_kref = 1;               // The item that is a member
+    string added_at = 2;              // When the item was added to bundle
+    string added_by = 3;              // Who added the item (author uuid)
+    string added_by_username = 4;     // Username who added the item
+    int32 added_in_revision = 5;      // Which bundle revision this was added
 }
 
-message AddCollectionMemberRequest {
-    Kref collection_kref = 1;         // The collection product kref
-    Kref member_product_kref = 2;     // The product to add as member
-    map<string, string> metadata = 3; // Optional metadata for version tracking
+message AddBundleMemberRequest {
+    Kref bundle_kref = 1;             // The bundle item kref
+    Kref member_item_kref = 2;        // The item to add as member
+    map<string, string> metadata = 3; // Optional metadata for revision tracking
 }
 
-message AddCollectionMemberResponse {
+message AddBundleMemberResponse {
     bool success = 1;
     string message = 2;
-    VersionResponse new_version = 3;  // The new version created for this change
+    RevisionResponse new_revision = 3;  // The new revision created for this change
 }
 
-message RemoveCollectionMemberRequest {
-    Kref collection_kref = 1;         // The collection product kref
-    Kref member_product_kref = 2;     // The product to remove
-    map<string, string> metadata = 3; // Optional metadata for version tracking
+message RemoveBundleMemberRequest {
+    Kref bundle_kref = 1;             // The bundle item kref
+    Kref member_item_kref = 2;        // The item to remove
+    map<string, string> metadata = 3; // Optional metadata for revision tracking
 }
 
-message RemoveCollectionMemberResponse {
+message RemoveBundleMemberResponse {
     bool success = 1;
     string message = 2;
-    VersionResponse new_version = 3;  // The new version created for this change
+    RevisionResponse new_revision = 3;  // The new revision created for this change
 }
 
-message GetCollectionMembersRequest {
-    Kref collection_kref = 1;         // The collection product kref
-    optional int32 version_number = 2; // Optional: specific version (default: latest)
+message GetBundleMembersRequest {
+    Kref bundle_kref = 1;             // The bundle item kref
+    optional int32 revision_number = 2; // Optional: specific revision (default: latest)
 }
 
-message GetCollectionMembersResponse {
-    repeated CollectionMember members = 1;
-    int32 version_number = 2;         // Which version's membership this represents
+message GetBundleMembersResponse {
+    repeated BundleMember members = 1;
+    int32 revision_number = 2;         // Which revision's membership this represents
     int32 total_count = 3;
 }
 
-message CollectionVersionHistory {
-    int32 version_number = 1;
+message BundleRevisionHistory {
+    int32 revision_number = 1;
     string action = 2;                // "ADDED" or "REMOVED"
-    Kref member_product_kref = 3;     // The product that was added/removed
+    Kref member_item_kref = 3;        // The item that was added/removed
     string author = 4;
     string username = 5;
     string created_at = 6;
     map<string, string> metadata = 7; // Immutable audit metadata
 }
 
-message GetCollectionHistoryRequest {
-    Kref collection_kref = 1;
+message GetBundleHistoryRequest {
+    Kref bundle_kref = 1;
 }
 
-message GetCollectionHistoryResponse {
-    repeated CollectionVersionHistory history = 1;
+message GetBundleHistoryResponse {
+    repeated BundleRevisionHistory history = 1;
 }
 
 // --- Event Streaming Messages ---
 
 message EventStreamRequest {
-    // A routing key filter, e.g., "product.model.created" or "version.tagged.*"
+    // A routing key filter, e.g., "item.model.created" or "revision.tagged.*"
     // An empty string subscribes to all events.
     string routing_key_filter = 1;
     // A kref filter for filtering by object URI patterns, e.g., "kref://projectA/**/*.model"
@@ -541,7 +541,7 @@ message EventStreamRequest {
 }
 
 message Event {
-    // A routing key describing the event, e.g., "product.model.created"
+    // A routing key describing the event, e.g., "item.model.created"
     string routing_key = 1;
     // The Kref of the object that was affected.
     Kref kref = 2;
@@ -602,66 +602,66 @@ service KumihoService {
     rpc UpdateProject(UpdateProjectRequest) returns (ProjectResponse);
     rpc DeleteProject(DeleteProjectRequest) returns (StatusResponse);
 
-    // Group methods
-    rpc CreateGroup(CreateGroupRequest) returns (GroupResponse);
-    rpc GetGroup(GetGroupRequest) returns (GroupResponse);
-    rpc GetChildGroups(GetChildGroupsRequest) returns (GetChildGroupsResponse);
-    rpc DeleteGroup(DeleteGroupRequest) returns (StatusResponse);
-    rpc UpdateGroupMetadata(UpdateMetadataRequest) returns (GroupResponse);
+    // Space methods
+    rpc CreateSpace(CreateSpaceRequest) returns (SpaceResponse);
+    rpc GetSpace(GetSpaceRequest) returns (SpaceResponse);
+    rpc GetChildSpaces(GetChildSpacesRequest) returns (GetChildSpacesResponse);
+    rpc DeleteSpace(DeleteSpaceRequest) returns (StatusResponse);
+    rpc UpdateSpaceMetadata(UpdateMetadataRequest) returns (SpaceResponse);
 
-    // Product methods
-    rpc CreateProduct(CreateProductRequest) returns (ProductResponse);
-    rpc GetProduct(GetProductRequest) returns (ProductResponse);
-    rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
-    rpc ProductSearch(ProductSearchRequest) returns (GetProductsResponse);
-    rpc DeleteProduct(DeleteProductRequest) returns (StatusResponse);
-    rpc UpdateProductMetadata(UpdateMetadataRequest) returns (ProductResponse);
+    // Item methods
+    rpc CreateItem(CreateItemRequest) returns (ItemResponse);
+    rpc GetItem(GetItemRequest) returns (ItemResponse);
+    rpc GetItems(GetItemsRequest) returns (GetItemsResponse);
+    rpc ItemSearch(ItemSearchRequest) returns (GetItemsResponse);
+    rpc DeleteItem(DeleteItemRequest) returns (StatusResponse);
+    rpc UpdateItemMetadata(UpdateMetadataRequest) returns (ItemResponse);
 
-    // Version methods
-    rpc ResolveKref(ResolveKrefRequest) returns (VersionResponse);
+    // Revision methods
+    rpc ResolveKref(ResolveKrefRequest) returns (RevisionResponse);
     rpc ResolveLocation(ResolveLocationRequest) returns (ResolveLocationResponse);
-    rpc CreateVersion(CreateVersionRequest) returns (VersionResponse);
-    rpc GetVersion(KrefRequest) returns (VersionResponse);
-    rpc GetVersions(GetVersionsRequest) returns (GetVersionsResponse);
-    rpc DeleteVersion(DeleteVersionRequest) returns (StatusResponse);
-    rpc PeekNextVersion(PeekNextVersionRequest) returns (PeekNextVersionResponse);
-    rpc UpdateVersionMetadata(UpdateMetadataRequest) returns (VersionResponse);
-    rpc TagVersion(TagVersionRequest) returns (StatusResponse);
-    rpc UnTagVersion(UnTagVersionRequest) returns (StatusResponse);
+    rpc CreateRevision(CreateRevisionRequest) returns (RevisionResponse);
+    rpc GetRevision(KrefRequest) returns (RevisionResponse);
+    rpc GetRevisions(GetRevisionsRequest) returns (GetRevisionsResponse);
+    rpc DeleteRevision(DeleteRevisionRequest) returns (StatusResponse);
+    rpc PeekNextRevision(PeekNextRevisionRequest) returns (PeekNextRevisionResponse);
+    rpc UpdateRevisionMetadata(UpdateMetadataRequest) returns (RevisionResponse);
+    rpc TagRevision(TagRevisionRequest) returns (StatusResponse);
+    rpc UnTagRevision(UnTagRevisionRequest) returns (StatusResponse);
     rpc HasTag(HasTagRequest) returns (HasTagResponse);
     rpc WasTagged(WasTaggedRequest) returns (WasTaggedResponse);
-    rpc SetDefaultResource(SetDefaultResourceRequest) returns (StatusResponse);
+    rpc SetDefaultArtifact(SetDefaultArtifactRequest) returns (StatusResponse);
 
-    // Resource methods
-    rpc CreateResource(CreateResourceRequest) returns (ResourceResponse);
-    rpc GetResource(GetResourceRequest) returns (ResourceResponse);
-    rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse);
-    rpc GetResourcesByLocation(GetResourcesByLocationRequest) returns (GetResourcesByLocationResponse);
-    rpc DeleteResource(DeleteResourceRequest) returns (StatusResponse);
-    rpc UpdateResourceMetadata(UpdateMetadataRequest) returns (ResourceResponse);
+    // Artifact methods
+    rpc CreateArtifact(CreateArtifactRequest) returns (ArtifactResponse);
+    rpc GetArtifact(GetArtifactRequest) returns (ArtifactResponse);
+    rpc GetArtifacts(GetArtifactsRequest) returns (GetArtifactsResponse);
+    rpc GetArtifactsByLocation(GetArtifactsByLocationRequest) returns (GetArtifactsByLocationResponse);
+    rpc DeleteArtifact(DeleteArtifactRequest) returns (StatusResponse);
+    rpc UpdateArtifactMetadata(UpdateMetadataRequest) returns (ArtifactResponse);
 
     // Attribute methods (granular metadata operations)
-    // These work on any entity type (Version, Product, Resource, Group) identified by kref
+    // These work on any entity type (Revision, Item, Artifact, Space) identified by kref
     rpc SetAttribute(SetAttributeRequest) returns (StatusResponse);
     rpc GetAttribute(GetAttributeRequest) returns (GetAttributeResponse);
     rpc DeleteAttribute(DeleteAttributeRequest) returns (StatusResponse);
 
-    // Link methods
-    rpc CreateLink(CreateLinkRequest) returns (StatusResponse);
-    rpc GetLinks(GetLinksRequest) returns (GetLinksResponse);
-    rpc DeleteLink(DeleteLinkRequest) returns (StatusResponse);
+    // Edge methods
+    rpc CreateEdge(CreateEdgeRequest) returns (StatusResponse);
+    rpc GetEdges(GetEdgesRequest) returns (GetEdgesResponse);
+    rpc DeleteEdge(DeleteEdgeRequest) returns (StatusResponse);
 
     // Graph Traversal methods
-    rpc TraverseLinks(TraverseLinksRequest) returns (TraverseLinksResponse);
+    rpc TraverseEdges(TraverseEdgesRequest) returns (TraverseEdgesResponse);
     rpc FindShortestPath(ShortestPathRequest) returns (ShortestPathResponse);
     rpc AnalyzeImpact(ImpactAnalysisRequest) returns (ImpactAnalysisResponse);
 
-    // Collection methods
-    rpc CreateCollection(CreateCollectionRequest) returns (ProductResponse);
-    rpc AddCollectionMember(AddCollectionMemberRequest) returns (AddCollectionMemberResponse);
-    rpc RemoveCollectionMember(RemoveCollectionMemberRequest) returns (RemoveCollectionMemberResponse);
-    rpc GetCollectionMembers(GetCollectionMembersRequest) returns (GetCollectionMembersResponse);
-    rpc GetCollectionHistory(GetCollectionHistoryRequest) returns (GetCollectionHistoryResponse);
+    // Bundle methods
+    rpc CreateBundle(CreateBundleRequest) returns (ItemResponse);
+    rpc AddBundleMember(AddBundleMemberRequest) returns (AddBundleMemberResponse);
+    rpc RemoveBundleMember(RemoveBundleMemberRequest) returns (RemoveBundleMemberResponse);
+    rpc GetBundleMembers(GetBundleMembersRequest) returns (GetBundleMembersResponse);
+    rpc GetBundleHistory(GetBundleHistoryRequest) returns (GetBundleHistoryResponse);
 
     // Tenant methods
     rpc GetTenantUsage(GetTenantUsageRequest) returns (TenantUsageResponse);
