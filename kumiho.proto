@@ -48,6 +48,24 @@ message StatusResponse {
     string message = 2;
 }
 
+// Pagination parameters for list requests
+message PaginationRequest {
+    // Maximum number of items to return (default: 100, max: 1000)
+    int32 page_size = 1;
+    // Cursor for the next page (opaque string from previous response)
+    string cursor = 2;
+}
+
+// Pagination info in list responses
+message PaginationResponse {
+    // Cursor for the next page, empty if no more results
+    string next_cursor = 1;
+    // Whether there are more results available
+    bool has_more = 2;
+    // Total count of items (if available, -1 if unknown)
+    int32 total_count = 3;
+}
+
 message KrefRequest {
     Kref kref = 1;
 }
@@ -101,10 +119,14 @@ message DeleteGroupRequest {
 message GetChildGroupsRequest {
     string parent_path = 1; // Empty string for root level groups
     bool recursive = 2;
+    // Optional pagination parameters
+    optional PaginationRequest pagination = 3;
 }
 
 message GetChildGroupsResponse {
     repeated GroupResponse groups = 1;
+    // Pagination info for the response
+    optional PaginationResponse pagination = 2;
 }
 
 // --- Product Messages ---
@@ -144,10 +166,14 @@ message GetProductsRequest {
     string parent_path = 1;
     string product_name_filter = 2;
     string product_type_filter = 3;
+    // Optional pagination parameters
+    optional PaginationRequest pagination = 4;
 }
 
 message GetProductsResponse {
     repeated ProductResponse products = 1;
+    // Pagination info for the response
+    optional PaginationResponse pagination = 2;
 }
 
 message ProductSearchRequest {
@@ -189,10 +215,14 @@ message DeleteVersionRequest {
 
 message GetVersionsRequest {
     Kref product_kref = 1;
+    // Optional pagination parameters
+    optional PaginationRequest pagination = 2;
 }
 
 message GetVersionsResponse {
     repeated VersionResponse versions = 1;
+    // Pagination info for the response
+    optional PaginationResponse pagination = 2;
 }
 
 // --- Resource Messages ---
@@ -298,6 +328,31 @@ message UpdateMetadataRequest {
     map<string, string> metadata = 2;
 }
 
+// Set a single metadata attribute (upsert)
+message SetAttributeRequest {
+    Kref kref = 1;
+    string key = 2;
+    string value = 3;
+}
+
+// Get a single metadata attribute
+message GetAttributeRequest {
+    Kref kref = 1;
+    string key = 2;
+}
+
+message GetAttributeResponse {
+    string key = 1;
+    string value = 2;
+    bool exists = 3;
+}
+
+// Delete a single metadata attribute
+message DeleteAttributeRequest {
+    Kref kref = 1;
+    string key = 2;
+}
+
 // --- Peek Next Version Messages ---
 message PeekNextVersionRequest {
     Kref product_kref = 1;
@@ -317,11 +372,15 @@ message GetLinksRequest {
     Kref kref = 1; // The version to get links for.
     string link_type_filter = 2; // Optional: if empty, returns all links.
     LinkDirection direction = 3; // Optional: defaults to OUTGOING
+    // Optional pagination parameters
+    optional PaginationRequest pagination = 4;
 }
 
 message GetLinksResponse {
     repeated Link links = 1;
     repeated Kref version_krefs = 2;
+    // Pagination info for the response
+    optional PaginationResponse pagination = 3;
 }
 
 message DeleteLinkRequest {
@@ -580,6 +639,12 @@ service KumihoService {
     rpc GetResourcesByLocation(GetResourcesByLocationRequest) returns (GetResourcesByLocationResponse);
     rpc DeleteResource(DeleteResourceRequest) returns (StatusResponse);
     rpc UpdateResourceMetadata(UpdateMetadataRequest) returns (ResourceResponse);
+
+    // Attribute methods (granular metadata operations)
+    // These work on any entity type (Version, Product, Resource, Group) identified by kref
+    rpc SetAttribute(SetAttributeRequest) returns (StatusResponse);
+    rpc GetAttribute(GetAttributeRequest) returns (GetAttributeResponse);
+    rpc DeleteAttribute(DeleteAttributeRequest) returns (StatusResponse);
 
     // Link methods
     rpc CreateLink(CreateLinkRequest) returns (StatusResponse);
