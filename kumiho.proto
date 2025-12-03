@@ -538,6 +538,22 @@ message EventStreamRequest {
     // A kref filter for filtering by object URI patterns, e.g., "kref://projectA/**/*.model"
     // Supports wildcards. An empty string means no kref filtering.
     string kref_filter = 2;
+    
+    // Cursor-based resume (Creator tier and above)
+    // Resume from a previous event cursor to avoid missing events during disconnection.
+    optional string cursor = 3;
+    
+    // Consumer group for load-balanced delivery (Enterprise tier only)
+    // Multiple consumers in the same group will each receive different events.
+    optional string consumer_group = 4;
+    
+    // Start position options (Creator tier and above)
+    oneof start_position {
+        bool from_latest = 5;       // Default: only new events from now
+        string from_cursor = 6;     // Resume from cursor (same as cursor field, for explicit choice)
+        string from_timestamp = 7;  // Replay from ISO timestamp
+        bool from_beginning = 8;    // All available history (subject to retention)
+    }
 }
 
 message Event {
@@ -554,6 +570,32 @@ message Event {
     // Additional details about the event, e.g., the tag that was added.
     map<string, string> details = 6;
     string username = 7;
+    
+    // Cursor for resumable streaming (Creator tier and above).
+    // Save this cursor and pass it in EventStreamRequest.cursor to resume
+    // from this point after reconnection.
+    string cursor = 8;
+}
+
+// Request for event streaming capabilities
+message GetEventCapabilitiesRequest {
+    // Empty - capabilities are determined by authenticated tenant's tier
+}
+
+// Event streaming capabilities for the current tenant tier
+message EventCapabilities {
+    // Whether this tier supports replaying past events
+    bool supports_replay = 1;
+    // Whether cursor-based resume is supported
+    bool supports_cursor = 2;
+    // Whether consumer groups are supported (Enterprise only)
+    bool supports_consumer_groups = 3;
+    // Maximum event retention in hours (0 = none, -1 = unlimited)
+    int64 max_retention_hours = 4;
+    // Maximum events in buffer (0 = none, -1 = unlimited)
+    int64 max_buffer_size = 5;
+    // Tier identifier (free, creator, studio, enterprise)
+    string tier = 6;
 }
 
 // --- Project Messages (gRPC parity with HTTP) ---
@@ -668,6 +710,9 @@ service KumihoService {
 
     // Event Streaming
     rpc EventStream(EventStreamRequest) returns (stream Event);
+    
+    // Get event streaming capabilities for the authenticated tenant's tier
+    rpc GetEventCapabilities(GetEventCapabilitiesRequest) returns (EventCapabilities);
 
     // Deprecation methods
     rpc SetDeprecated(SetDeprecatedRequest) returns (StatusResponse);
