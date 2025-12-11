@@ -180,6 +180,8 @@ message ItemSearchRequest {
     string context_filter = 1;
     string item_name_filter = 2;
     string kind_filter = 3;
+    // Optional pagination parameters
+    optional PaginationRequest pagination = 4;
 }
 
 // --- Revision Messages ---
