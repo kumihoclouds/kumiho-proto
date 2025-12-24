@@ -168,6 +168,7 @@ message GetItemsRequest {
     string kind_filter = 3;
     // Optional pagination parameters
     optional PaginationRequest pagination = 4;
+    bool include_deprecated = 5;
 }
 
 message GetItemsResponse {
@@ -182,6 +183,7 @@ message ItemSearchRequest {
     string kind_filter = 3;
     // Optional pagination parameters
     optional PaginationRequest pagination = 4;
+    bool include_deprecated = 5;
 }
 
 // --- Revision Messages ---
