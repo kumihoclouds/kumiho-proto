@@ -186,6 +186,57 @@ message ItemSearchRequest {
     bool include_deprecated = 5;
 }
 
+// --- Full-Text Search Messages ---
+// Provides Google-like fuzzy search across items, revisions, and artifacts
+
+message SearchRequest {
+    // Search query string (supports Lucene syntax for advanced users)
+    // Simple usage: "hero model" finds items matching both terms
+    // Fuzzy matching is automatic - typos like "heros" will match "hero"
+    string query = 1;
+
+    // Optional: Restrict search to a kref prefix (e.g., "myproject/assets")
+    string context_filter = 2;
+
+    // Optional: Filter by exact item kind (e.g., "model", "texture", "rig")
+    string kind_filter = 3;
+
+    // Include soft-deleted (deprecated) items in results
+    bool include_deprecated = 4;
+
+    // Pagination parameters
+    optional PaginationRequest pagination = 5;
+
+    // Minimum relevance score (0.0 to 1.0, default 0.0 returns all matches)
+    float min_score = 6;
+
+    // Search depth options - control performance vs completeness tradeoff
+    // Default: Only search Item index (fastest)
+    // When enabled, also searches Revision/Artifact metadata (slower but more comprehensive)
+    bool include_revision_metadata = 7;
+    bool include_artifact_metadata = 8;
+}
+
+message SearchResult {
+    // The matched item (search always returns Items, even when matching on revision/artifact metadata)
+    ItemResponse item = 1;
+
+    // Relevance score from Lucene (higher = better match)
+    float score = 2;
+
+    // Where the match was found: "item", "revision", "artifact"
+    // Multiple values if matched in multiple places
+    repeated string matched_in = 3;
+}
+
+message SearchResponse {
+    // Search results ordered by relevance score (highest first)
+    repeated SearchResult results = 1;
+
+    // Pagination info
+    optional PaginationResponse pagination = 2;
+}
+
 // --- Revision Messages ---
 
 message CreateRevisionRequest {
@@ -663,6 +714,9 @@ service KumihoService {
     rpc ItemSearch(ItemSearchRequest) returns (GetItemsResponse);
     rpc DeleteItem(DeleteItemRequest) returns (StatusResponse);
     rpc UpdateItemMetadata(UpdateMetadataRequest) returns (ItemResponse);
+
+    // Full-text search (Google-like fuzzy search across items)
+    rpc Search(SearchRequest) returns (SearchResponse);
 
     // Revision methods
     rpc ResolveKref(ResolveKrefRequest) returns (RevisionResponse);
