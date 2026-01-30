@@ -280,6 +280,28 @@ message GetRevisionsResponse {
     optional PaginationResponse pagination = 2;
 }
 
+// Batch revision fetching - fetch multiple revisions in a single call
+message BatchGetRevisionsRequest {
+    // List of revision krefs to fetch (e.g., kref://project/space/item.kind?r=1)
+    repeated Kref revision_krefs = 1;
+    // Or fetch by item krefs with optional tag (defaults to "latest")
+    repeated Kref item_krefs = 2;
+    // Tag to resolve when using item_krefs (default: "latest")
+    string tag = 3;
+    // If true, continue on not-found errors and return partial results
+    bool allow_partial = 4;
+}
+
+message BatchGetRevisionsResponse {
+    // Successfully fetched revisions (in same order as request when possible)
+    repeated RevisionResponse revisions = 1;
+    // Krefs that were not found (only populated if allow_partial=true)
+    repeated string not_found = 2;
+    // Total requested vs returned counts
+    int32 requested_count = 3;
+    int32 found_count = 4;
+}
+
 // --- Artifact Messages ---
 
 message CreateArtifactRequest {
@@ -724,6 +746,7 @@ service KumihoService {
     rpc CreateRevision(CreateRevisionRequest) returns (RevisionResponse);
     rpc GetRevision(KrefRequest) returns (RevisionResponse);
     rpc GetRevisions(GetRevisionsRequest) returns (GetRevisionsResponse);
+    rpc BatchGetRevisions(BatchGetRevisionsRequest) returns (BatchGetRevisionsResponse);
     rpc DeleteRevision(DeleteRevisionRequest) returns (StatusResponse);
     rpc PeekNextRevision(PeekNextRevisionRequest) returns (PeekNextRevisionResponse);
     rpc UpdateRevisionMetadata(UpdateMetadataRequest) returns (RevisionResponse);
