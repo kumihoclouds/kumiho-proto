@@ -235,6 +235,10 @@ message SearchResponse {
 
     // Pagination info
     optional PaginationResponse pagination = 2;
+
+    // Search mode used: "fulltext" (Lucene only) or "hybrid" (fulltext + vector)
+    // Hybrid mode is available for STUDIO+ tiers with vector embeddings enabled
+    optional string search_mode = 3;
 }
 
 // --- Revision Messages ---
