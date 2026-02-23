@@ -241,6 +241,38 @@ message SearchResponse {
     optional string search_mode = 3;
 }
 
+// --- Revision Scoring Messages ---
+// Score specific revisions against a query using server-side embeddings + fulltext
+
+message ScoreRevisionsRequest {
+    // Query to score revisions against
+    string query = 1;
+    // Revisions to score (max 100)
+    repeated Kref revision_krefs = 2;
+    // When non-empty, re-embed revisions from ONLY these metadata fields
+    // instead of using the stored (broad) embedding.  Enables focused
+    // scoring — e.g. ["title", "summary"] strips implications/events
+    // so the most directly relevant revision ranks highest.
+    // When empty (default), uses stored embeddings (current behavior).
+    repeated string score_fields = 3;
+}
+
+message ScoredRevision {
+    // The revision kref
+    Kref kref = 1;
+    // Relevance score (0.0 - 1.0)
+    float score = 2;
+    // How the score was computed: "vector", "fulltext", or "hybrid"
+    string score_method = 3;
+}
+
+message ScoreRevisionsResponse {
+    // Scored revisions ordered by score DESC
+    repeated ScoredRevision scored_revisions = 1;
+    // Overall search mode used: "vector", "fulltext", "hybrid", or "none"
+    string search_mode = 2;
+}
+
 // --- Revision Messages ---
 
 message CreateRevisionRequest {
@@ -248,6 +280,7 @@ message CreateRevisionRequest {
     map<string, string> metadata = 2;
     int32 number = 3; // 0 for next available, >0 for specific revision
     bool exists_error = 4;
+    string embedding_text = 5; // Optional: override auto-generated embedding text
 }
 
 message RevisionResponse {
@@ -743,6 +776,9 @@ service KumihoService {
 
     // Full-text search (Google-like fuzzy search across items)
     rpc Search(SearchRequest) returns (SearchResponse);
+
+    // Score specific revisions against a query (server-side embeddings + fulltext)
+    rpc ScoreRevisions(ScoreRevisionsRequest) returns (ScoreRevisionsResponse);
 
     // Revision methods
     rpc ResolveKref(ResolveKrefRequest) returns (RevisionResponse);
